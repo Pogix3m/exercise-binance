@@ -18,4 +18,5 @@
     npm run test
     ```
 
-6. If a data sent is invalid
+6. A new txt file will be created in logs folder if an invalid data(#5 adn #6) was received
+https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#how-to-manage-a-local-order-book-correctly
