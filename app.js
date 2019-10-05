@@ -3,25 +3,23 @@ const fs = require('fs');
 
 const Binance = require('./binance');
 
-let check=false;
-process.argv.forEach(function (val, index,) {
-    if(val === '--check')
-        check = true;
-});
-
+/**
+ * Resets order book
+ * @param symbol
+ * @returns {Promise<Binance>}
+ */
 const reset = async(symbol) => {
     try {
         const snapshot = await Binance.getSnapShot(symbol);
-        return new Binance(symbol, snapshot, check);
+        return new Binance(symbol, snapshot);
     }
     catch(e) {
-        console.log('Reset Error');
+        console.log('Reset Error: ', e.message);
     }
 };
 
 (async () => {
     const symbol = 'BTCUSDT';
-
 
     const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@depth`);
     // ws.on('open', function open() {
@@ -32,11 +30,13 @@ const reset = async(symbol) => {
     ws.on('message', async(binanceData) => {
         const data = JSON.parse(binanceData);
 
+        //get initial order book
         if(!binance) {
             binance = await reset(symbol);
             return;
         }
 
+        //validate, reset if invalid for #5 and #6
         const rule = binance.validate(data);
         if(rule === 5 || rule === 6) {
             binance = await reset(symbol);

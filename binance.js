@@ -12,27 +12,13 @@ const log = (file, message) => {
 
     }, 0);
 };
-const logCheck = (file, {side, avg, orders, updateId}) => {
-    setTimeout(() => {
-        const message = `\nUpdate Id: ${updateId}\n` +
-                        `Avg(${side}): ${avg}\n` +
-                        JSON.stringify(orders);
-
-        // const file = fs.createWriteStream('./big.file');
-        fs.appendFile(`./logs/${file}-check.txt`, `${message}\n`, (err) => {
-            if(err) console.log('Error in logging check');
-        });
-
-    }, 0);
-};
-
 
 const round = (value, decimals=8) => {
     return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
 };
 
 class Binance {
-    constructor(symbol, orderBook, check) {
+    constructor(symbol, orderBook) {
         this.symbol = symbol;
         this.lastUpdateId = orderBook.lastUpdateId;
         this.bids = orderBook.bids;
@@ -43,7 +29,6 @@ class Binance {
 
         const current = new Date();
         this._logFileName = `${current.getFullYear()}.${(current.getMonth() + 1).toString().padStart(2, '0')}.${current.getDate().toString().padStart(2, '0')} ${current.getHours().toString().padStart(2, '0')}${current.getMinutes().toString().padStart(2, '0')}`;
-        this.check = check;
     }
 
     static async getSnapShot(symbol) {
@@ -122,17 +107,17 @@ class Binance {
                     const bid = bids[ii];
 
                     if (+newBid[0] === +bid[0]) {
-                        if (+newBid[1]) bid[1] = newBid[1];
-                        else {
-                            bids.splice(ii, 1);
-                        }
+                        if (+newBid[1]) bid[1] = newBid[1]; //update quantity
+                        else bids.splice(ii, 1); //remove in order book
                         break;
-                    } else if (+newBid[1]) {
+                    }
+                    else if (+newBid[1]) {
                         if (+newBid[0] >+ bid[0]) {
                             //insert before
                             bids.splice(ii, 0, newBid);
                             break;
-                        } else if (ii === bids.length - 1) {
+                        }
+                        else if (ii === bids.length - 1) {
                             //insert at last if has quantity
                             bids.push(newBid);
                         }
@@ -152,17 +137,17 @@ class Binance {
                     const ask = asks[ii];
 
                     if (+newAsk[0] === +ask[0]) {
-                        if (+newAsk[1]) ask[1] = newAsk[1];
-                        else {
-                            asks.splice(ii, 1);
-                        }
+                        if (+newAsk[1]) ask[1] = newAsk[1]; //update quantity
+                        else asks.splice(ii, 1); //remove in order book
                         break;
-                    } else if (+newAsk[1]) {
+                    }
+                    else if (+newAsk[1]) {
                         if (+newAsk[0] < +ask[0]) {
                             //insert before
                             asks.splice(ii, 0, newAsk);
                             break;
-                        } else if (ii === asks.length - 1) {
+                        }
+                        else if (ii === asks.length - 1) {
                             //insert at last if has quantity
                             asks.push(newAsk);
                         }
@@ -189,20 +174,18 @@ class Binance {
             const order = orders[i];
 
             if(order[1] >= qty) {
+                //consume remaining quantity
                 sum += round(order[0] * qty);
                 qty = 0;
             }
             else {
+                //consume only available quantity
                 sum += round(order[0] * order[1]);
                 qty  = round(qty - order[1]);
             }
         }
 
-        const avg = round(sum/(quantity-qty));
-
-        if(this.check) logCheck(this._logFileName, {side, avg, orders, updateId: this.previousFinalUpdate});
-
-        return avg;
+        return round(sum/(quantity-qty));
     }
 }
 

@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha test/ --recursive --exit",
-    "start": "node app",
-    "check": "node app --check"
+    "start": "node app"
   },
   "keywords": [],
   "author": "",
