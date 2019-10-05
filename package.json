@@ -1,0 +1,22 @@
+{
+  "name": "exercise-binance",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha test/ --recursive --exit",
+    "start": "node app",
+    "check": "node app --check"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4",
+    "ws": "^7.1.2"
+  },
+  "devDependencies": {
+    "mocha": "^6.2.1"
+  }
+}
