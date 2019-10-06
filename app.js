@@ -36,10 +36,9 @@ const reset = async(symbol) => {
             return;
         }
 
-        //validate, reset if invalid for #5 and #6
         const rule = binance.validate(data);
-        if(rule === 5 || rule === 6) {
-            binance = await reset(symbol);
+        if(rule) {
+            if(rule === 5 || rule === 6) binance = await reset(symbol);
             return;
         }
 
