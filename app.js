@@ -1,7 +1,7 @@
 const WebSocket = require('ws');
-const fs = require('fs');
 
 const Binance = require('./binance');
+const enumSides = require('./enum-sides');
 
 /**
  * Resets order book
@@ -21,12 +21,12 @@ const reset = async(symbol) => {
 (async () => {
     const symbol = 'BTCUSDT';
 
-    const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@depth`);
+    const ws = new WebSocket(`wss://stream.binance.com:9443/ws/${symbol.toLowerCase()}@depth@100ms`);
     // ws.on('open', function open() {
     //     ws.send('something');
     // });
 
-    let binance;// = await reset(symbol);
+    let binance, avgBuy, avgSell;
     ws.on('message', async(binanceData) => {
         const data = JSON.parse(binanceData);
 
@@ -44,8 +44,33 @@ const reset = async(symbol) => {
 
         binance.updateOrderBook(data);
 
-        console.log(`\nFinal Update ID: ${data.u}`);
-        console.log('Avg. Buy : ', binance.getPrice('buy', 100).toFixed(8));
-        console.log('Avg. Sell: ', binance.getPrice('sell', 100).toFixed(8));
+
+        //<editor-fold desc="Output">
+        const newAvgBuy = binance.getPrice(enumSides.buy, 100);
+        const newAvgSell = binance.getPrice(enumSides.sell, 100);
+        const isNewAvgBuy = newAvgBuy !== avgBuy;
+        const isNewAvgSell = newAvgSell !== avgSell;
+
+        if(isNewAvgBuy || isNewAvgSell) {
+            if(isNewAvgBuy) {
+                console.log(`Avg Buy  : ${newAvgBuy.toFixed(8)}`);
+                avgBuy = newAvgBuy;
+            }
+            if(isNewAvgSell) {
+                console.log(`Avg Sell : ${newAvgSell.toFixed(8)}`);
+                avgSell = newAvgSell;
+            }
+
+            /**************************/
+
+            //<editor-fold desc="Aesthetics">
+            // console.log(`\nLatest Update ID: ${data.u}`);
+            // console.log(`Avg Buy  : ${newAvgBuy.toFixed(8)} ${isNewAvgBuy ? '(updated)':''}`);
+            // console.log(`Avg Sell : ${newAvgSell.toFixed(8)} ${isNewAvgSell ? '(updated)':''}`);
+            // if(isNewAvgBuy) avgBuy = newAvgBuy;
+            // if(isNewAvgSell) avgSell = newAvgSell;
+            //</editor-fold>
+        }
+        //</editor-fold>
     });
 })();

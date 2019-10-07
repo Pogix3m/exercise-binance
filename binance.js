@@ -1,6 +1,8 @@
 const request = require('request-promise');
 const fs = require('fs');
 
+const enumSides = require('./enum-sides');
+
 const log = (file, message) => {
     setTimeout(() => {
         const current = new Date();
@@ -161,12 +163,14 @@ class Binance {
     }
 
     getPrice(side, quantity) {
+        if(side !== enumSides.buy && side !== enumSides.sell) return 0;
+
         const {bids, asks} = this;
         let qty = quantity;
         let sum = 0;
         const orders = [];
-        if(side === 'buy') orders.push(...bids);
-        if(side === 'sell') orders.push(...asks);
+        if(side === enumSides.buy) orders.push(...bids);
+        if(side === enumSides.sell) orders.push(...asks);
 
         if(!orders.length) return 0;
 
